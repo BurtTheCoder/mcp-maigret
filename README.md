@@ -15,7 +15,7 @@ This tool is designed for legitimate OSINT research purposes. Please:
 
 - Node.js (v18 or later)
 - Docker
-- macOS or Linux (Windows not supported)
+- macOS, Linux, Windows
 - Write access to the reports directory
 
 ## Quick Start
