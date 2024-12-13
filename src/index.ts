@@ -10,11 +10,12 @@ import {
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { platform } from 'os';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
-import { join, dirname } from 'path';
+import { existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 const execAsync = promisify(exec);
 const isWindows = platform() === 'win32';
+const DOCKER_IMAGE = 'soxoj/maigret:latest';
 
 interface SearchUsernameArgs {
   username: string;
@@ -55,16 +56,19 @@ function isParseUrlArgs(args: unknown): args is ParseUrlArgs {
 
 class MaigretServer {
   private server: Server;
-  private venvPath: string = '';
-  private pythonPath: string = '';
-  private pipPath: string = '';
-  private reportsDir: string = '';
+  private reportsDir: string;
 
   constructor() {
     if (isWindows) {
       throw new Error('Windows is not supported. Please use Linux or MacOS.');
     }
 
+    if (!process.env.MAIGRET_REPORTS_DIR) {
+      throw new Error('MAIGRET_REPORTS_DIR environment variable must be set');
+    }
+
+    this.reportsDir = process.env.MAIGRET_REPORTS_DIR;
+    
     this.server = new Server({
       name: 'maigret-server',
       version: '0.1.0',
@@ -73,27 +77,13 @@ class MaigretServer {
       }
     });
 
-    const homeDir = process.env.HOME || '';
-    const maigretDir = join(homeDir, '.maigret');
+    console.error('Using reports directory:', this.reportsDir);
     
-    // Create maigret directory if it doesn't exist
-    if (!existsSync(maigretDir)) {
-      mkdirSync(maigretDir, { recursive: true });
-    }
-
-    // Set up paths
-    this.venvPath = join(maigretDir, 'venv');
-    this.pythonPath = join(this.venvPath, 'bin', 'python');
-    this.pipPath = join(this.venvPath, 'bin', 'pip');
-    this.reportsDir = join(maigretDir, 'reports');
-
     // Create reports directory if it doesn't exist
     if (!existsSync(this.reportsDir)) {
+      console.error('Creating reports directory...');
       mkdirSync(this.reportsDir, { recursive: true });
     }
-
-    console.error('Using virtual environment:', this.venvPath);
-    console.error('Using reports directory:', this.reportsDir);
     
     this.setupToolHandlers();
     
@@ -102,45 +92,49 @@ class MaigretServer {
       await this.server.close();
       process.exit(0);
     });
+
+    // Trigger setup immediately
+    this.ensureSetup().catch(error => {
+      console.error('Failed to setup maigret:', error);
+      process.exit(1);
+    });
   }
 
-  private async execMaigret(args: string[]): Promise<ExecResult> {
-    const command = `"${this.pythonPath}" -m maigret ${args.join(' ')}`;
+  private async execCommand(command: string): Promise<ExecResult> {
     console.error('Executing command:', command);
-    
-    const { stdout, stderr } = await execAsync(command, {
-      maxBuffer: 10 * 1024 * 1024
-    });
-    
-    return { stdout, stderr };
+    try {
+      const result = await execAsync(command, {
+        maxBuffer: 10 * 1024 * 1024
+      });
+      console.error('Command output:', result.stdout);
+      if (result.stderr) console.error('Command stderr:', result.stderr);
+      return result;
+    } catch (error) {
+      console.error('Command failed:', error);
+      throw error;
+    }
   }
 
   private async ensureSetup(): Promise<void> {
     try {
-      if (!existsSync(this.venvPath)) {
-        console.error('Creating virtual environment...');
-        await execAsync(`python3 -m venv "${this.venvPath}" --system-site-packages`);
-        
-        // Install pip using get-pip.py
-        console.error('Installing pip...');
-        const getPipPath = join(this.venvPath, 'get-pip.py');
-        await execAsync(`curl -sSL https://bootstrap.pypa.io/get-pip.py -o "${getPipPath}"`);
-        await execAsync(`"${this.pythonPath}" "${getPipPath}"`);
-        
-        // Clean up get-pip.py
-        await execAsync(`rm "${getPipPath}"`);
+      console.error('Checking Docker...');
+      try {
+        await this.execCommand('docker --version');
+      } catch (error) {
+        throw new Error('Docker is not installed or not running. Please install Docker and try again.');
       }
 
-      // Install dependencies in the virtual environment
-      console.error('Installing/updating dependencies...');
-      await execAsync(`"${this.pythonPath}" -m pip install --upgrade pip`);
-      await execAsync(`"${this.pythonPath}" -m pip install --upgrade maigret`);
-
-      // Verify installation
-      const { stdout } = await this.execMaigret(['--version']);
-      console.error('Maigret version:', stdout);
+      console.error('Checking if maigret image exists...');
+      try {
+        await this.execCommand(`docker image inspect ${DOCKER_IMAGE}`);
+        console.error('Maigret image found');
+      } catch (error) {
+        console.error('Maigret image not found, pulling...');
+        await this.execCommand(`docker pull ${DOCKER_IMAGE}`);
+        console.error('Maigret image pulled successfully');
+      }
     } catch (error) {
-      console.error('Failed to setup maigret:', error);
+      console.error('Setup failed:', error);
       throw error;
     }
   }
@@ -226,13 +220,12 @@ class MaigretServer {
             } = request.params.arguments;
 
             const safeUsername = sanitizeFilename(username);
-            const reportPath = join(this.reportsDir, `report_${safeUsername}.txt`);
+            const reportPath = join(this.reportsDir, `report_${safeUsername}.${format}`);
 
             // Build command arguments
             const args = [
-              safeUsername,
-              '-T',
-              '--print-errors',
+              username,
+              `--${format}`,
               '--no-color'
             ];
 
@@ -244,12 +237,11 @@ class MaigretServer {
               args.push('--tags', tags.join(','));
             }
 
-            const { stdout, stderr } = await this.execMaigret(args);
+            // Run maigret in Docker
+            const { stdout, stderr } = await this.execCommand(
+              `docker run --rm -v "${this.reportsDir}:/app/reports" ${DOCKER_IMAGE} ${args.join(' ')}`
+            );
             
-            // Save output to report file
-            writeFileSync(reportPath, stdout);
-            console.error('Report saved to:', reportPath);
-
             return {
               content: [
                 {
@@ -272,11 +264,15 @@ class MaigretServer {
 
             const args = [
               '--parse', url,
-              '-T',
+              `--${format}`,
               '--no-color'
             ];
 
-            const { stdout, stderr } = await this.execMaigret(args);
+            // Run maigret in Docker
+            const { stdout, stderr } = await this.execCommand(
+              `docker run --rm -v "${this.reportsDir}:/app/reports" ${DOCKER_IMAGE} ${args.join(' ')}`
+            );
+
             return {
               content: [
                 {

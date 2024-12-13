@@ -1,11 +1,26 @@
-# Source files (since we publish the build)
+# Source
 src/
 
-# Development files
-.github/
+# Development configs
 tsconfig.json
-.env*
-*.log
+.github/
+.gitignore
 
-# Don't ignore the build directory
-!build/
+# Dependencies
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Test files
+__tests__/
+*.test.ts
+*.spec.ts
+
+# Other
+.DS_Store
