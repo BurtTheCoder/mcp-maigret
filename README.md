@@ -26,7 +26,7 @@ This tool is designed for legitimate OSINT research purposes. Please:
 
 2. Install the server globally via npm:
 ```bash
-npm install -g @burtthecoder/mcp-maigret
+npm install -g mcp-maigret
 ```
 
 3. Create a reports directory:
