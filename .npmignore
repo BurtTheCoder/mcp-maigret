@@ -1,0 +1,11 @@
+# Source files (since we publish the build)
+src/
+
+# Development files
+.github/
+tsconfig.json
+.env*
+*.log
+
+# Don't ignore the build directory
+!build/

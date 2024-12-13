@@ -1,0 +1,15 @@
+{
+  "name": "mcp-maigret",
+  "version": "1.0.0",
+  "description": "MCP server for maigret",
+  "main": "build/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\""
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  }
+}
