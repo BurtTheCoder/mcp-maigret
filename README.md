@@ -2,6 +2,8 @@
 
 A Model Context Protocol (MCP) server for [maigret](https://github.com/soxoj/maigret), a powerful OSINT tool that collects user account information from various public sources. This server provides tools for searching usernames across social networks and analyzing URLs. It is designed to integrate seamlessly with MCP-compatible applications like [Claude Desktop](https://claude.ai).
 
+<a href="https://glama.ai/mcp/servers/knnpcz651x"><img width="380" height="200" src="https://glama.ai/mcp/servers/knnpcz651x/badge" alt="mcp-maigret MCP server" /></a>
+
 ## ⚠️ Warning
 
 This tool is designed for legitimate OSINT research purposes. Please:
