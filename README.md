@@ -15,7 +15,7 @@ This tool is designed for legitimate OSINT research purposes. Please:
 
 - Node.js (v18 or later)
 - Docker
-- macOS, Linux, Windows
+- macOS, Linux, or Windows with Docker Desktop installed
 - Write access to the reports directory
 
 ## Quick Start
@@ -50,7 +50,7 @@ mkdir -p /path/to/reports/directory
 
 Configuration file location:
 - macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: Not supported
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
 
 5. Restart Claude Desktop
 
@@ -96,7 +96,7 @@ npm run build
 - Description: Search for a username across social networks and sites
 - Parameters:
   * `username` (required): Username to search for
-  * `format` (optional, default: "txt"): Output format (txt, html, pdf, json, csv, xmind)
+  * `format` (optional, default: "pdf"): Output format (txt, html, pdf, json, csv, xmind)
   * `use_all_sites` (optional, default: false): Use all available sites instead of top 500
   * `tags` (optional): Array of tags to filter sites (e.g., ["photo", "dating"])
 
@@ -115,7 +115,7 @@ Example:
 - Description: Parse a URL to extract information and search for associated usernames
 - Parameters:
   * `url` (required): URL to analyze
-  * `format` (optional, default: "txt"): Output format (txt, html, pdf, json, csv, xmind)
+  * `format` (optional, default: "pdf"): Output format (txt, html, pdf, json, csv, xmind)
 
 Example:
 ```json

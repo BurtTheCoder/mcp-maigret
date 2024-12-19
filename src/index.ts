@@ -14,7 +14,6 @@ import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
 const execAsync = promisify(exec);
-const isWindows = platform() === 'win32';
 const DOCKER_IMAGE = 'soxoj/maigret:latest';
 
 interface SearchUsernameArgs {
@@ -59,10 +58,6 @@ class MaigretServer {
   private reportsDir: string;
 
   constructor() {
-    if (isWindows) {
-      throw new Error('Windows is not supported. Please use Linux or MacOS.');
-    }
-
     if (!process.env.MAIGRET_REPORTS_DIR) {
       throw new Error('MAIGRET_REPORTS_DIR environment variable must be set');
     }
@@ -156,7 +151,7 @@ class MaigretServer {
                 type: 'string',
                 enum: ['txt', 'html', 'pdf', 'json', 'csv', 'xmind'],
                 description: 'Output format',
-                default: 'txt'
+                default: 'pdf'
               },
               use_all_sites: {
                 type: 'boolean',
@@ -190,7 +185,7 @@ class MaigretServer {
                 type: 'string',
                 enum: ['txt', 'html', 'pdf', 'json', 'csv', 'xmind'],
                 description: 'Output format',
-                default: 'txt'
+                default: 'pdf'
               }
             },
             required: ['url']
@@ -214,7 +209,7 @@ class MaigretServer {
 
             const { 
               username, 
-              format = 'txt',
+              format = 'pdf',
               use_all_sites = false,
               tags = []
             } = request.params.arguments;
@@ -226,7 +221,8 @@ class MaigretServer {
             const args = [
               username,
               `--${format}`,
-              '--no-color'
+              '--no-color',
+              '--no-progressbar'
             ];
 
             if (use_all_sites) {
@@ -260,12 +256,13 @@ class MaigretServer {
               );
             }
 
-            const { url, format = 'txt' } = request.params.arguments;
+            const { url, format = 'pdf' } = request.params.arguments;
 
             const args = [
               '--parse', url,
               `--${format}`,
-              '--no-color'
+              '--no-color',
+              '--no-progressbar'
             ];
 
             // Run maigret in Docker
