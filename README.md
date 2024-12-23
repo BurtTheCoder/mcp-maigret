@@ -1,8 +1,10 @@
 # Maigret MCP Server
+[![smithery badge](https://smithery.ai/badge/mcp-maigret)](https://smithery.ai/server/mcp-maigret)
 
 A Model Context Protocol (MCP) server for [maigret](https://github.com/soxoj/maigret), a powerful OSINT tool that collects user account information from various public sources. This server provides tools for searching usernames across social networks and analyzing URLs. It is designed to integrate seamlessly with MCP-compatible applications like [Claude Desktop](https://claude.ai).
 
 <a href="https://glama.ai/mcp/servers/knnpcz651x"><img width="380" height="200" src="https://glama.ai/mcp/servers/knnpcz651x/badge" alt="mcp-maigret MCP server" /></a>
+
 
 ## ⚠️ Warning
 
@@ -22,6 +24,15 @@ This tool is designed for legitimate OSINT research purposes. Please:
 
 ## Quick Start
 
+### Installing via Smithery
+
+To install Maigret for Claude Desktop automatically via [Smithery](https://smithery.ai/server/mcp-maigret):
+
+```bash
+npx -y @smithery/cli install mcp-maigret --client claude
+```
+
+### Installing Manually
 1. Install Docker:
    - macOS: Install [Docker Desktop](https://www.docker.com/products/docker-desktop)
    - Linux: Follow the [Docker Engine installation guide](https://docs.docker.com/engine/install/)
