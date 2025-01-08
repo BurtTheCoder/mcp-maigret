@@ -64,13 +64,14 @@ class MaigretServer {
 
     this.reportsDir = process.env.MAIGRET_REPORTS_DIR;
     
-    this.server = new Server({
-      name: 'maigret-server',
-      version: '0.1.0',
-      capabilities: {
-        tools: {}
-      }
-    });
+        this.server = new Server({
+            name: 'maigret-server',
+            version: '0.1.0',
+            capabilities: {
+                tools: {}
+            },
+            timeout: 600000  // 10 minutes in milliseconds
+        });
 
     console.error('Using reports directory:', this.reportsDir);
     
