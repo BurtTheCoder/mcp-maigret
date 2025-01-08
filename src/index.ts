@@ -223,7 +223,8 @@ class MaigretServer {
               username,
               `--${format}`,
               '--no-color',
-              '--no-progressbar'
+              '--no-progressbar',
+              '-n', '200'  // Increase max connections from default 100 to 200
             ];
 
             if (use_all_sites) {
@@ -263,7 +264,9 @@ class MaigretServer {
               '--parse', url,
               `--${format}`,
               '--no-color',
-              '--no-progressbar'
+              '--no-progressbar',
+              '--timeout', '60',  // 60 second timeout per request
+              '-n', '200'  // Increase max connections from default 100 to 200
             ];
 
             // Run maigret in Docker
